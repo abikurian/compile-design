@@ -1,0 +1,99 @@
+```c
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
+
+struct expr {
+    char op[5], op1[10], op2[10], res[10];
+    int flag;
+} a[50];
+
+int n;
+
+int num(char *s) {
+    int i = (s[0] == '-') ? 1 : 0;
+    if (s[i] == '\0') return 0;
+    for (; s[i]; i++)
+        if (!isdigit(s[i])) return 0;
+    return 1;
+}
+
+void prop(int k, char *x, char *v) {
+    for (int i = k; i < n; i++) {
+        if (a[i].flag) continue;
+        if (!strcmp(a[i].res, x)) break;
+        if (!strcmp(a[i].op1, x)) strcpy(a[i].op1, v);
+        if (!strcmp(a[i].op2, x)) strcpy(a[i].op2, v);
+    }
+}
+
+void optimize() {
+    int change = 1;
+
+    while (change) {
+        change = 0;
+
+        for (int i = 0; i < n; i++) {
+            if (a[i].flag) continue;
+
+            /* Constant propagation */
+            if (!strcmp(a[i].op, "=") && num(a[i].op1)) {
+                a[i].flag = 1;
+                prop(i + 1, a[i].res, a[i].op1);
+                change = 1;
+            }
+
+            /* Constant folding */
+            else if (num(a[i].op1) && num(a[i].op2)) {
+                int x = atoi(a[i].op1);
+                int y = atoi(a[i].op2);
+                int r = 0, valid = 1;
+
+                switch (a[i].op[0]) {
+                    case '+': r = x + y; break;
+                    case '-': r = x - y; break;
+                    case '*': r = x * y; break;
+                    case '/':
+                        if (y) r = x / y;
+                        else valid = 0;
+                        break;
+                    default: valid = 0;
+                }
+
+                if (valid) {
+                    strcpy(a[i].op, "=");
+                    sprintf(a[i].op1, "%d", r);
+                    strcpy(a[i].op2, "-");
+                    a[i].flag = 1;
+                    prop(i + 1, a[i].res, a[i].op1);
+                    change = 1;
+                }
+            }
+        }
+    }
+}
+
+int main() {
+    printf("\nEnter the maximum number of expressions : ");
+    scanf("%d", &n);
+
+    printf("\nEnter the input (Format: op op1 op2 res) :\n");
+
+    for (int i = 0; i < n; i++) {
+        scanf("%s %s %s %s",
+              a[i].op, a[i].op1, a[i].op2, a[i].res);
+        a[i].flag = 0;
+    }
+
+    optimize();
+
+    printf("\nOptimized code is :\n");
+    for (int i = 0; i < n; i++)
+        if (!a[i].flag)
+            printf("%s %s %s %s\n",
+                   a[i].op, a[i].op1, a[i].op2, a[i].res);
+
+    return 0;
+}
+```
