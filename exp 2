@@ -1,0 +1,61 @@
+```c
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
+char key[][10] = {"int","float","if","else","while",
+                  "for","return","char","void"};
+
+int keyword(char s[]) {
+    for(int i=0;i<9;i++)
+        if(!strcmp(s,key[i])) return 1;
+    return 0;
+}
+
+void parse(char s[]) {
+    char t[20];
+    int i=0,j;
+
+    while(s[i]) {
+        if(s[i]==' ') { i++; continue; }
+
+        if(strchr("+-*/=<>",s[i])) {
+            printf("'%c' is an OPERATOR\n",s[i++]);
+            continue;
+        }
+
+        if(strchr("();",s[i])) {
+            printf("'%c' is a PUNCTUATION\n",s[i++]);
+            continue;
+        }
+
+        j=0;
+        while(s[i] && s[i]!=' ' &&
+              !strchr("+-*/=<>();",s[i]))
+            t[j++]=s[i++];
+
+        t[j]='\0';
+
+        if(keyword(t))
+            printf("'%s' is a KEYWORD\n",t);
+        else {
+            int num=1;
+            for(j=0;t[j];j++)
+                if(!isdigit(t[j])) num=0;
+
+            if(num)
+                printf("'%s' is a NUMBER\n",t);
+            else if(!isdigit(t[0]))
+                printf("'%s' is an IDENTIFIER\n",t);
+            else
+                printf("'%s' is INVALID\n",t);
+        }
+    }
+}
+
+int main() {
+    char str[]="int a = b + 1c ;";
+    parse(str);
+    return 0;
+}
+```
